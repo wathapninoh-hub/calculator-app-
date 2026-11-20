@@ -1,0 +1,16 @@
+{
+  "name": "madagascar-driving-3d",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Madagascar Driving 3D mobile prototype",
+  "scripts": {
+    "copy-web": "mkdir -p www && cp index.html www/index.html"
+  },
+  "dependencies": {
+    "@capacitor/android": "6.2.1",
+    "@capacitor/core": "6.2.1"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "6.2.1"
+  }
+}
