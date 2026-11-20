@@ -1,0 +1,23 @@
+name: Build Madagascar Driving 3D
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Package playable web game
+        run: |
+          mkdir -p dist
+          cp index.html README.md dist/
+          cd dist
+          zip -r ../madagascar-driving3d-web.zip .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: madagascar-driving3d-web
+          path: madagascar-driving3d-web.zip
+          if-no-files-found: error
