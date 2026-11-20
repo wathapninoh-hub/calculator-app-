@@ -22,6 +22,7 @@
 <div id="start"><button id="play">▶ MILA LALAOVINA</button></div>
 <script type="module">
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js';
 const host=document.querySelector('#game'),loading=document.querySelector('#loading');
 const scene=new THREE.Scene();scene.background=new THREE.Color(0x9bc9e8);scene.fog=new THREE.Fog(0x9bc9e8,75,250);
 const camera=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,.1,500);camera.position.set(0,5,10);
@@ -46,6 +47,33 @@ const cabin=new THREE.Mesh(new THREE.BoxGeometry(1.55,.72,1.65),glass);cabin.pos
 const roof=new THREE.Mesh(new THREE.BoxGeometry(1.58,.13,1.55),white);roof.position.set(0,1.88,.25);car.add(roof);
 for(let x of [-.72,.72])for(let z of [-1.15,1.15]){let w=new THREE.Mesh(new THREE.CylinderGeometry(.39,.39,.22,16),rubber);w.rotation.z=Math.PI/2;w.position.set(x,.48,z);w.castShadow=true;car.add(w);let hub=new THREE.Mesh(new THREE.CylinderGeometry(.18,.18,.23,12),mat(0x9ca5aa,.5));hub.rotation.z=Math.PI/2;hub.position.copy(w.position);car.add(hub)}
 for(let x of [-.68,.68]){let lamp=new THREE.Mesh(new THREE.BoxGeometry(.36,.16,.05),mat(0xfff1bd));lamp.position.set(x,.9,-1.84);car.add(lamp)}
+// Load a detailed CC0 sports-car model; keep the procedural car as a fallback.
+const modelStatus=document.createElement('div');
+modelStatus.className='panel';
+modelStatus.style.cssText='position:fixed;left:50%;top:106px;transform:translateX(-50%);font-size:11px;pointer-events:none';
+modelStatus.textContent='Maka modely fiara 3D…';
+document.body.appendChild(modelStatus);
+new GLTFLoader().load(
+ 'https://raw.githubusercontent.com/JaronKBragg7337/spectral-gt-rs/main/spectral_gt_rs_game_ready.glb',
+ gltf=>{
+   const model=gltf.scene;
+   model.rotation.y=Math.PI/2;
+   model.scale.setScalar(0.82);
+   model.updateMatrixWorld(true);
+   const bounds=new THREE.Box3().setFromObject(model);
+   const center=bounds.getCenter(new THREE.Vector3());
+   model.position.x-=center.x;
+   model.position.z-=center.z;
+   model.position.y-=bounds.min.y;
+   model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true}});
+   while(car.children.length)car.remove(car.children[0]);
+   car.add(model);
+   modelStatus.textContent='Modely fiara 3D tena izy ✓';
+   setTimeout(()=>modelStatus.remove(),2600);
+ },
+ undefined,
+ error=>{modelStatus.textContent='Modely ivelany tsy azo; fiara vonjimaika no ampiasaina';console.warn(error);setTimeout(()=>modelStatus.remove(),4500)}
+);
 car.position.set(0,0,5);
 let speed=0,steer=0,gas=false,brake=false,left=false,right=false,started=false,distance=0;
 const bind=(id,set)=>{let el=document.getElementById(id);el.addEventListener('pointerdown',e=>{e.preventDefault();set(true)});for(let ev of ['pointerup','pointercancel','pointerleave'])el.addEventListener(ev,e=>set(false))};
