@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="mg">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Madagascar Driving 3D</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#9bc8e8;font-family:system-ui,Arial;color:#fff;touch-action:none}
+#game{position:fixed;inset:0}canvas{display:block}
+#hud{position:fixed;inset:0;pointer-events:none}.panel{position:absolute;background:#101827bb;border:1px solid #ffffff33;border-radius:14px;padding:9px 13px;backdrop-filter:blur(8px);font-weight:700;text-shadow:0 1px 3px #000}
+#brand{top:12px;left:12px;font-size:13px}#speed{top:12px;right:12px;text-align:right;font-size:13px}#hint{top:64px;left:50%;transform:translateX(-50%);font-size:12px;white-space:nowrap}
+#controls{position:fixed;bottom:18px;left:0;right:0;display:flex;justify-content:space-between;align-items:end;padding:0 18px;pointer-events:none}
+.cluster{display:flex;gap:12px;pointer-events:auto}.ctrl{width:68px;height:68px;border-radius:50%;border:2px solid #ffffff88;background:#16243bbd;color:#fff;font-size:25px;font-weight:800;box-shadow:0 5px 16px #0005;touch-action:none}.ctrl:active{background:#3a8d65}
+#pedals{display:flex;gap:10px;pointer-events:auto}.pedal{width:62px;height:78px;border-radius:15px;border:2px solid #ffffff88;background:#16243bbd;color:white;font-weight:800;touch-action:none}.pedal:active{background:#3a8d65}
+#start{position:fixed;inset:0;display:grid;place-items:center;background:#10182755;backdrop-filter:blur(3px)}#start button{border:0;border-radius:16px;padding:16px 26px;background:#e9b43c;color:#172033;font-size:18px;font-weight:900;box-shadow:0 8px 24px #0005}
+#loading{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);color:#173047;font-weight:800}
+</style>
+</head>
+<body>
+<div id="game"></div><div id="loading">Manomana tontolo 3D…</div>
+<div id="hud"><div id="brand" class="panel">🇲🇬 MADAGASCAR DRIVE 3D</div><div id="speed" class="panel">0 km/h<br><small>MODE LIBRE</small></div><div id="hint" class="panel">Mandehana amin'ny lalana • Dika voalohany</div></div>
+<div id="controls"><div class="cluster"><button class="ctrl" id="left">◀</button><button class="ctrl" id="right">▶</button></div><div id="pedals"><button class="pedal" id="brake">FREIN</button><button class="pedal" id="gas">ACCÉLÉRER</button></div></div>
+<div id="start"><button id="play">▶ MILA LALAOVINA</button></div>
+<script type="module">
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+const host=document.querySelector('#game'),loading=document.querySelector('#loading');
+const scene=new THREE.Scene();scene.background=new THREE.Color(0x9bc9e8);scene.fog=new THREE.Fog(0x9bc9e8,75,250);
+const camera=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,.1,500);camera.position.set(0,5,10);
+const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,1.7));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.15;host.appendChild(renderer.domElement);
+scene.add(new THREE.HemisphereLight(0xd8efff,0x6b5736,2));
+const sun=new THREE.DirectionalLight(0xffedc5,2.3);sun.position.set(-35,55,25);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);scene.add(sun);
+const mat=(color,roughness=1)=>new THREE.MeshStandardMaterial({color,roughness});
+const grass=mat(0x89964a),roadmat=mat(0x35383c),edge=mat(0xc6b18a),trunk=mat(0x68452c),leaf=[mat(0x4e753c),mat(0x718b42),mat(0x87984b)],white=mat(0xe9e8dd),glass=mat(0x8bb9c9,.3),black=mat(0x20242a),rubber=mat(0x161719);
+const ground=new THREE.Mesh(new THREE.PlaneGeometry(600,600),grass);ground.rotation.x=-Math.PI/2;ground.position.y=-.13;ground.receiveShadow=true;scene.add(ground);
+const road=new THREE.Mesh(new THREE.PlaneGeometry(12,600),roadmat);road.rotation.x=-Math.PI/2;road.position.y=-.08;road.receiveShadow=true;scene.add(road);
+for(let z=-290;z<300;z+=12){let dash=new THREE.Mesh(new THREE.BoxGeometry(.16,.025,5),mat(0xe5d9ad));dash.position.set(0,-.045,z);scene.add(dash)}
+for(let side of [-1,1]){let shoulder=new THREE.Mesh(new THREE.BoxGeometry(.35,.04,600),edge);shoulder.position.set(side*6.1,-.04,0);scene.add(shoulder)}
+// distant mountains
+for(let i=0;i<16;i++){let h=18+Math.random()*28,w=22+Math.random()*25;let m=new THREE.Mesh(new THREE.ConeGeometry(w,h,5),mat(i%2?0x83969b:0x71878d));m.position.set((i-8)*24,h/2-3,-115-Math.random()*35);scene.add(m)}
+function tree(x,z,s=1){const g=new THREE.Group();let t=new THREE.Mesh(new THREE.CylinderGeometry(.18*s,.28*s,2.2*s,6),trunk);t.position.y=1.1*s;t.castShadow=true;g.add(t);for(let j=0;j<3;j++){let crown=new THREE.Mesh(new THREE.IcosahedronGeometry((1.15-j*.12)*s,1),leaf[(j+Math.floor(Math.random()*3))%3]);crown.position.set((Math.random()-.5)*.25*s,(2.2+j*.55)*s,(Math.random()-.5)*.2*s);crown.castShadow=true;g.add(crown)}g.position.set(x,0,z);scene.add(g)}
+for(let z=-280;z<100;z+=9){for(let side of [-1,1]){if(Math.random()>.15)tree(side*(10+Math.random()*22),z+Math.random()*6,.65+Math.random()*.85)}}
+for(let i=0;i<100;i++){let x=(Math.random()-.5)*80,z=-300+Math.random()*360;if(Math.abs(x)>7){let bush=new THREE.Mesh(new THREE.DodecahedronGeometry(.25+Math.random()*.5,0),leaf[i%3]);bush.position.set(x,.15,z);bush.scale.y=.55;scene.add(bush)}}
+const car=new THREE.Group();scene.add(car);
+const body=new THREE.Mesh(new THREE.BoxGeometry(2.05,.62,3.65),mat(0xe4e8e8,.42));body.position.y=.85;body.castShadow=true;car.add(body);
+const hood=new THREE.Mesh(new THREE.BoxGeometry(1.92,.22,1.05),white);hood.position.set(0,1.12,-1.12);car.add(hood);
+const cabin=new THREE.Mesh(new THREE.BoxGeometry(1.55,.72,1.65),glass);cabin.position.set(0,1.48,.25);cabin.castShadow=true;car.add(cabin);
+const roof=new THREE.Mesh(new THREE.BoxGeometry(1.58,.13,1.55),white);roof.position.set(0,1.88,.25);car.add(roof);
+for(let x of [-.72,.72])for(let z of [-1.15,1.15]){let w=new THREE.Mesh(new THREE.CylinderGeometry(.39,.39,.22,16),rubber);w.rotation.z=Math.PI/2;w.position.set(x,.48,z);w.castShadow=true;car.add(w);let hub=new THREE.Mesh(new THREE.CylinderGeometry(.18,.18,.23,12),mat(0x9ca5aa,.5));hub.rotation.z=Math.PI/2;hub.position.copy(w.position);car.add(hub)}
+for(let x of [-.68,.68]){let lamp=new THREE.Mesh(new THREE.BoxGeometry(.36,.16,.05),mat(0xfff1bd));lamp.position.set(x,.9,-1.84);car.add(lamp)}
+car.position.set(0,0,5);
+let speed=0,steer=0,gas=false,brake=false,left=false,right=false,started=false,distance=0;
+const bind=(id,set)=>{let el=document.getElementById(id);el.addEventListener('pointerdown',e=>{e.preventDefault();set(true)});for(let ev of ['pointerup','pointercancel','pointerleave'])el.addEventListener(ev,e=>set(false))};
+bind('gas',v=>gas=v);bind('brake',v=>brake=v);bind('left',v=>left=v);bind('right',v=>right=v);
+document.getElementById('play').onclick=()=>{started=true;document.getElementById('start').style.display='none'};
+function update(dt){if(started){if(gas)speed=Math.min(38,speed+18*dt);else speed=Math.max(0,speed-4*dt);if(brake)speed=Math.max(0,speed-27*dt);let target=(left?1:0)-(right?1:0);steer=THREE.MathUtils.damp(steer,target,7,dt);car.position.x=THREE.MathUtils.clamp(car.position.x+steer*speed*.045*dt,-4.8,4.8);car.rotation.y=-steer*.22;distance+=speed*dt/3.6;car.position.z-=speed*dt*.20;if(car.position.z<-20){car.position.z=5;distance+=25}}
+camera.position.x=THREE.MathUtils.damp(camera.position.x,car.position.x*.48,3,dt);camera.position.y=THREE.MathUtils.damp(camera.position.y,5.2,3,dt);camera.position.z=car.position.z+8;camera.lookAt(car.position.x,.8,car.position.z-7);
+document.querySelector('#speed').innerHTML=Math.round(speed*3.6)+' km/h<br><small>'+Math.floor(distance)+' m • MODE LIBRE</small>'}
+let prev=performance.now();function loop(now){let dt=Math.min((now-prev)/1000,.04);prev=now;update(dt);renderer.render(scene,camera);requestAnimationFrame(loop)}requestAnimationFrame(loop);loading.remove();
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
+</script></body></html>
