@@ -1,17 +1,17 @@
 <!doctype html>
 <html lang="mg">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>Madagascar Driving 3D</title>
 <style>
-*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#9bc8e8;font-family:system-ui,Arial;color:#fff;touch-action:none}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#9bc8e8;font-family:system-ui,Arial;color:#fff;touch-action:none;overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 #game{position:fixed;inset:0}canvas{display:block}
 #hud{position:fixed;inset:0;pointer-events:none}.panel{position:absolute;background:#101827bb;border:1px solid #ffffff33;border-radius:14px;padding:9px 13px;backdrop-filter:blur(8px);font-weight:700;text-shadow:0 1px 3px #000}
 #brand{top:12px;left:12px;font-size:13px}#speed{top:12px;right:12px;text-align:right;font-size:13px}#hint{top:64px;left:50%;transform:translateX(-50%);font-size:12px;white-space:nowrap}
-#controls{position:fixed;bottom:18px;left:0;right:0;display:flex;justify-content:space-between;align-items:end;padding:0 18px;pointer-events:none}
-.cluster{display:flex;gap:12px;pointer-events:auto}.ctrl{width:68px;height:68px;border-radius:50%;border:2px solid #ffffff88;background:#16243bbd;color:#fff;font-size:25px;font-weight:800;box-shadow:0 5px 16px #0005;touch-action:none}.ctrl:active{background:#3a8d65}
-#pedals{display:flex;gap:10px;pointer-events:auto}.pedal{width:62px;height:78px;border-radius:15px;border:2px solid #ffffff88;background:#16243bbd;color:white;font-weight:800;touch-action:none}.pedal:active{background:#3a8d65}
-#start{position:fixed;inset:0;display:grid;place-items:center;background:#10182755;backdrop-filter:blur(3px)}#start button{border:0;border-radius:16px;padding:16px 26px;background:#e9b43c;color:#172033;font-size:18px;font-weight:900;box-shadow:0 8px 24px #0005}
+#controls{position:fixed;bottom:max(12px,env(safe-area-inset-bottom));left:0;right:0;display:flex;justify-content:space-between;align-items:end;padding:0 max(18px,env(safe-area-inset-right)) 0 max(18px,env(safe-area-inset-left));pointer-events:none;z-index:10}
+.cluster{display:flex;gap:12px;pointer-events:auto}.ctrl{width:clamp(58px,11vh,82px);height:clamp(58px,11vh,82px);border-radius:50%;border:2px solid #ffffff88;background:#16243bbd;color:#fff;font-size:25px;font-weight:800;box-shadow:0 5px 16px #0005;touch-action:none}.ctrl:active{background:#3a8d65}
+#pedals{display:flex;gap:10px;pointer-events:auto}.pedal{width:clamp(66px,12vw,94px);height:clamp(70px,15vh,100px);border-radius:15px;border:2px solid #ffffff88;background:#16243bbd;color:white;font-weight:800;touch-action:none}.pedal:active{background:#3a8d65}
+#start{position:fixed;inset:0;display:grid;place-items:center;z-index:20;background:#10182755;backdrop-filter:blur(3px)}#start button{border:0;border-radius:16px;padding:16px 26px;background:#e9b43c;color:#172033;font-size:18px;font-weight:900;box-shadow:0 8px 24px #0005}
 #loading{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);color:#173047;font-weight:800}
 </style>
 </head>
@@ -19,7 +19,7 @@
 <div id="game"></div><div id="loading">Manomana tontolo 3D…</div>
 <div id="hud"><div id="brand" class="panel">🇲🇬 MADAGASCAR DRIVE 3D</div><div id="speed" class="panel">0 km/h<br><small>MODE LIBRE</small></div><div id="hint" class="panel">Mandehana amin'ny lalana • Dika voalohany</div></div>
 <div id="controls"><div class="cluster"><button class="ctrl" id="left">◀</button><button class="ctrl" id="right">▶</button></div><div id="pedals"><button class="pedal" id="brake">FREIN</button><button class="pedal" id="gas">ACCÉLÉRER</button></div></div>
-<div id="start"><button id="play">▶ MILA LALAOVINA</button></div>
+<div id="start"><button id="play" type="button">▶ HANOMBOKA MILALAO</button></div>
 <script type="module">
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js';
@@ -76,9 +76,9 @@ new GLTFLoader().load(
 );
 car.position.set(0,0,5);
 let speed=0,steer=0,gas=false,brake=false,left=false,right=false,started=false,distance=0;
-const bind=(id,set)=>{let el=document.getElementById(id);el.addEventListener('pointerdown',e=>{e.preventDefault();set(true)});for(let ev of ['pointerup','pointercancel','pointerleave'])el.addEventListener(ev,e=>set(false))};
+const bind=(id,set)=>{const el=document.getElementById(id);el.addEventListener('contextmenu',e=>e.preventDefault());el.addEventListener('pointerdown',e=>{e.preventDefault();try{el.setPointerCapture(e.pointerId)}catch(_){}set(true)});for(const ev of ['pointerup','pointercancel','lostpointercapture'])el.addEventListener(ev,e=>{e.preventDefault();set(false)});};
 bind('gas',v=>gas=v);bind('brake',v=>brake=v);bind('left',v=>left=v);bind('right',v=>right=v);
-document.getElementById('play').onclick=()=>{started=true;document.getElementById('start').style.display='none'};
+document.getElementById('play').addEventListener('pointerdown',e=>e.stopPropagation());document.getElementById('play').onclick=()=>{started=true;document.getElementById('start').style.display='none'};addEventListener('blur',()=>{gas=brake=left=right=false});
 function update(dt){if(started){if(gas)speed=Math.min(38,speed+18*dt);else speed=Math.max(0,speed-4*dt);if(brake)speed=Math.max(0,speed-27*dt);let target=(left?1:0)-(right?1:0);steer=THREE.MathUtils.damp(steer,target,7,dt);car.position.x=THREE.MathUtils.clamp(car.position.x+steer*speed*.045*dt,-4.8,4.8);car.rotation.y=-steer*.22;distance+=speed*dt/3.6;car.position.z-=speed*dt*.20;if(car.position.z<-20){car.position.z=5;distance+=25}}
 camera.position.x=THREE.MathUtils.damp(camera.position.x,car.position.x*.48,3,dt);camera.position.y=THREE.MathUtils.damp(camera.position.y,5.2,3,dt);camera.position.z=car.position.z+8;camera.lookAt(car.position.x,.8,car.position.z-7);
 document.querySelector('#speed').innerHTML=Math.round(speed*3.6)+' km/h<br><small>'+Math.floor(distance)+' m • MODE LIBRE</small>'}
