@@ -4,13 +4,15 @@
   "private": true,
   "description": "Madagascar Driving 3D mobile prototype",
   "scripts": {
-    "copy-web": "mkdir -p www && cp index.html www/index.html"
+    "build": "vite build"
   },
   "dependencies": {
     "@capacitor/android": "6.2.1",
-    "@capacitor/core": "6.2.1"
+    "@capacitor/core": "6.2.1",
+    "three": "^0.160.0"
   },
   "devDependencies": {
-    "@capacitor/cli": "6.2.1"
+    "@capacitor/cli": "6.2.1",
+    "vite": "^5.4.0"
   }
 }
