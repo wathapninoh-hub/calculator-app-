@@ -65,7 +65,13 @@ for(let x of [-.68,.68]){let lamp=new THREE.Mesh(new THREE.BoxGeometry(.36,.16,.
 const modelStatus=document.createElement('div');
 modelStatus.className='panel';
 modelStatus.style.cssText='position:fixed;left:50%;top:106px;transform:translateX(-50%);font-size:11px;pointer-events:none';
-modelStatus.textContent='Maka modely fiara 3D…';
+modelStatus.textContent='Misintona modely fiara 3D… 0%';
+modelStatus.style.minWidth='220px';
+modelStatus.style.textAlign='center';
+modelStatus.style.padding='10px 14px';
+modelStatus.style.border='1px solid #ffffff66';
+modelStatus.style.background='#101827dd';
+modelStatus.style.borderRadius='12px';
 document.body.appendChild(modelStatus);
 new GLTFLoader().load(
  'https://raw.githubusercontent.com/JaronKBragg7337/spectral-gt-rs/main/spectral_gt_rs_game_ready.glb',
@@ -85,8 +91,17 @@ new GLTFLoader().load(
    modelStatus.textContent='Modely fiara 3D tena izy ✓';
    setTimeout(()=>modelStatus.remove(),2600);
  },
- undefined,
- error=>{modelStatus.textContent='Modely ivelany tsy azo; fiara vonjimaika no ampiasaina';console.warn(error);setTimeout(()=>modelStatus.remove(),4500)}
+ event=>{
+   if(event && event.total>0){
+     const pct=Math.min(100,Math.round(event.loaded/event.total*100));
+     modelStatus.textContent='Misintona modely fiara 3D… '+pct+'%';
+     modelStatus.style.background='linear-gradient(90deg,#16834b '+pct+'%,#101827dd '+pct+'%)';
+   }else{
+     const mb=(event.loaded/1048576).toFixed(1);
+     modelStatus.textContent='Misintona modely fiara 3D… '+mb+' MB';
+   }
+ },
+ error=>{modelStatus.textContent='Tsy tafiditra ny modely; fiara vonjimaika no ampiasaina';console.warn(error);setTimeout(()=>modelStatus.remove(),4500)}
 );
 car.position.set(0,0,5);
 let speed=0,steer=0,gas=false,brake=false,left=false,right=false,started=false,distance=0;
