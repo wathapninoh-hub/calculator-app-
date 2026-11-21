@@ -20,6 +20,20 @@
 <div id="hud"><div id="brand" class="panel">🇲🇬 MADAGASCAR DRIVE 3D</div><div id="speed" class="panel">0 km/h<br><small>MODE LIBRE</small></div><div id="hint" class="panel">Mandehana amin'ny lalana • Dika voalohany</div></div>
 <div id="controls"><div class="cluster"><button class="ctrl" id="left">◀</button><button class="ctrl" id="right">▶</button></div><div id="pedals"><button class="pedal" id="brake">FREIN</button><button class="pedal" id="gas">ACCÉLÉRER</button></div></div>
 <div id="start"><button id="play" type="button">▶ HANOMBOKA MILALAO</button></div>
+<script>
+(function(){
+ const overlay=document.getElementById('start');
+ const button=document.getElementById('play');
+ function begin(e){
+  if(e){e.preventDefault();e.stopPropagation();}
+  overlay.style.display='none';
+  window.dispatchEvent(new Event('game-start-request'));
+ }
+ button.addEventListener('click',begin);
+ button.addEventListener('touchend',begin,{passive:false});
+ button.addEventListener('pointerup',begin);
+})();
+</script>
 <script type="module">
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js';
@@ -78,7 +92,7 @@ car.position.set(0,0,5);
 let speed=0,steer=0,gas=false,brake=false,left=false,right=false,started=false,distance=0;
 const bind=(id,set)=>{const el=document.getElementById(id);el.addEventListener('contextmenu',e=>e.preventDefault());el.addEventListener('pointerdown',e=>{e.preventDefault();try{el.setPointerCapture(e.pointerId)}catch(_){}set(true)});for(const ev of ['pointerup','pointercancel','lostpointercapture'])el.addEventListener(ev,e=>{e.preventDefault();set(false)});};
 bind('gas',v=>gas=v);bind('brake',v=>brake=v);bind('left',v=>left=v);bind('right',v=>right=v);
-document.getElementById('play').addEventListener('pointerdown',e=>e.stopPropagation());document.getElementById('play').onclick=()=>{started=true;document.getElementById('start').style.display='none'};addEventListener('blur',()=>{gas=brake=left=right=false});
+window.addEventListener('game-start-request',()=>{started=true});document.getElementById('play').addEventListener('pointerdown',e=>e.stopPropagation());document.getElementById('play').onclick=()=>{started=true;document.getElementById('start').style.display='none'};addEventListener('blur',()=>{gas=brake=left=right=false});
 function update(dt){if(started){if(gas)speed=Math.min(38,speed+18*dt);else speed=Math.max(0,speed-4*dt);if(brake)speed=Math.max(0,speed-27*dt);let target=(left?1:0)-(right?1:0);steer=THREE.MathUtils.damp(steer,target,7,dt);car.position.x=THREE.MathUtils.clamp(car.position.x+steer*speed*.045*dt,-4.8,4.8);car.rotation.y=-steer*.22;distance+=speed*dt/3.6;car.position.z-=speed*dt*.20;if(car.position.z<-20){car.position.z=5;distance+=25}}
 camera.position.x=THREE.MathUtils.damp(camera.position.x,car.position.x*.48,3,dt);camera.position.y=THREE.MathUtils.damp(camera.position.y,5.2,3,dt);camera.position.z=car.position.z+8;camera.lookAt(car.position.x,.8,car.position.z-7);
 document.querySelector('#speed').innerHTML=Math.round(speed*3.6)+' km/h<br><small>'+Math.floor(distance)+' m • MODE LIBRE</small>'}
